@@ -147,6 +147,82 @@ def feature_reader(dataset="cora", scale='large', train_ratio=0.5, feature_size=
 
         return features, features_train, labels, idx_train, idx_valid, idx_test
 
+    elif dataset == 'cora1':
+        dataset = 'cora'
+        names = ['x', 'y', 'tx', 'ty', 'allx', 'ally']
+        objects = []
+        for i in range(len(names)):
+            with open("data/ind.{}.{}".format(dataset, names[i]), 'rb') as f:
+                if sys.version_info > (3, 0):
+                    objects.append(pkl.load(f, encoding='latin1'))
+                else:
+                    objects.append(pkl.load(f))
+        x, y, tx, ty, allx, ally = tuple(objects)
+
+        test_idx_reorder = parse_index_file("data/ind.{}.test.index".format(dataset))
+        test_idx_range = np.sort(test_idx_reorder)
+
+        features = sp.vstack((allx, tx)).tolil()
+        features[test_idx_reorder, :] = features[test_idx_range, :]
+
+        labels = np.vstack((ally, ty))
+        labels[test_idx_reorder, :] = labels[test_idx_range, :]
+
+        idx_test = test_idx_range.tolist()
+        test_len = len(idx_test)//2
+        idx_test = idx_test[:test_len]
+        idx_train = list(range(len(y)//2))
+        idx_valid = list(range(len(y), len(y)+250))
+
+        print('#idx_train', len(idx_train))
+        print('#idx_valid', len(idx_valid))
+        print('#idx_test', len(idx_test))
+
+        features = preprocess_features(features)
+        features = torch.FloatTensor(np.array(features.todense()))
+        features_train = torch.clone(features)
+        labels = torch.LongTensor(np.where(labels)[1]).unsqueeze(-1)
+
+        return features, features_train, labels, idx_train, idx_valid, idx_test
+
+    elif dataset == 'cora2':
+        dataset = 'cora'
+        names = ['x', 'y', 'tx', 'ty', 'allx', 'ally']
+        objects = []
+        for i in range(len(names)):
+            with open("data/ind.{}.{}".format(dataset, names[i]), 'rb') as f:
+                if sys.version_info > (3, 0):
+                    objects.append(pkl.load(f, encoding='latin1'))
+                else:
+                    objects.append(pkl.load(f))
+        x, y, tx, ty, allx, ally = tuple(objects)
+
+        test_idx_reorder = parse_index_file("data/ind.{}.test.index".format(dataset))
+        test_idx_range = np.sort(test_idx_reorder)
+
+        features = sp.vstack((allx, tx)).tolil()
+        features[test_idx_reorder, :] = features[test_idx_range, :]
+
+        labels = np.vstack((ally, ty))
+        labels[test_idx_reorder, :] = labels[test_idx_range, :]
+
+        idx_test = test_idx_range.tolist()
+        test_len = len(idx_test)//2
+        idx_test = idx_test[test_len:]
+        idx_train = list(range(len(y)//2, len(y)))
+        idx_valid = list(range(len(y)+250, len(y)+500))
+
+        print('#idx_train', len(idx_train))
+        print('#idx_valid', len(idx_valid))
+        print('#idx_test', len(idx_test))
+
+        features = preprocess_features(features)
+        features = torch.FloatTensor(np.array(features.todense()))
+        features_train = torch.clone(features)
+        labels = torch.LongTensor(np.where(labels)[1]).unsqueeze(-1)
+
+        return features, features_train, labels, idx_train, idx_valid, idx_test
+
     else:
         names = ['x', 'y', 'tx', 'ty', 'allx', 'ally']
         objects = []
@@ -486,7 +562,17 @@ def graph_reader(args, dataset="cora", n_nodes=-1):
         adj_full = load_csr_mat_from_npz(f'./data/{dataset}/adj_full.npz')
         print(f'loading {dataset} graph done!')
         return adj_full
+    elif dataset in ('cora1', 'cora2'):
+        dataset = 'cora'
+        with open("data/ind.{}.{}".format(dataset, 'graph'), 'rb') as f:
+            if sys.version_info > (3, 0):
+                graph = pkl.load(f, encoding='latin1')
+            else:
+                graph = pkl.load(f)
 
+        adj = nx.adjacency_matrix(nx.from_dict_of_lists(graph))
+        adj_normalized = normalize_adj(adj + sp.eye(adj.shape[0]))
+        return sp.csr_matrix(adj_normalized)
     else:
         with open("data/ind.{}.{}".format(dataset, 'graph'), 'rb') as f:
             if sys.version_info > (3, 0):

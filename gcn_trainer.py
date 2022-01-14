@@ -115,7 +115,7 @@ class GCNTrainer():
             output = self.model(self.worker.features, self.worker.adj, self.worker.sub_adj)
 
         elif self.mode in ( 'sgc-clean' ):
-            if self.dataset in ('reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed') and mode == "train":
+            if self.dataset in ('reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed', 'cora1', 'cora2') and mode == "train":
                 output = self.model(self.worker.features_train)
 
             elif self.worker.transfer:
@@ -126,7 +126,7 @@ class GCNTrainer():
                 output = self.model(self.worker.features)
 
         else:
-            if self.dataset in ('reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed') \
+            if self.dataset in ('reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed', 'cora1', 'cora2') \
                 or self.dataset.startswith('twitch-train'):
                 output = self.model(self.worker.features_train, self.worker.adj_train) if mode == 'train' \
                     else self.model(self.worker.features, self.worker.adj_full)
@@ -148,7 +148,7 @@ class GCNTrainer():
         self.optimizer.zero_grad()
 
         output = self.forward(mode='train')
-        output = output[self.worker.idx_train] if self.dataset in ( 'cora', 'citeseer', 'pubmed' ) else output
+        output = output[self.worker.idx_train] if self.dataset in ( 'cora', 'citeseer', 'pubmed', 'cora1', 'cora2' ) else output
 
         target_labels = self.worker.labels_1 if self.worker.transfer \
                     else self.worker.labels[self.worker.idx_train]

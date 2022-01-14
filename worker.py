@@ -422,7 +422,7 @@ class Worker():
 
 
     def load_data(self):
-        if self.dataset in ( 'reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed' ):
+        if self.dataset in ( 'reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed', 'cora1', 'cora2' ):
             self.features, self.features_train, self.labels, self.idx_train, self.idx_val, self.idx_test \
                 = feature_reader(dataset=self.dataset, scale=self.args.scale, 
                                 train_ratio=self.args.train_ratio, feature_size=self.args.feature_size)
@@ -529,11 +529,11 @@ class Worker():
 
         if self.args.mode in ( 'mlp', 'lr' ): return
 
-        if self.dataset in ( 'reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed' ):
+        if self.dataset in ( 'reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed', 'cora1', 'cora2' ):
             self.adj_full = graph_reader(args=self.args, dataset=self.dataset, n_nodes=self.n_nodes)
 
             # construct training data
-            if self.dataset in ( 'cora', 'citeseer', 'pubmed' ):
+            if self.dataset in ( 'cora', 'citeseer', 'pubmed', 'cora1', 'cora2' ):
                 self.adj_train = sp.csr_matrix.copy(self.adj_full)
                 self.adj_ori = sp.csr_matrix.copy(self.adj_full)
             else:
@@ -588,7 +588,7 @@ class Worker():
 
     def prepare_data(self):
         if self.mode in ( 'sgc-clean', 'sgc' ):
-            if self.dataset in ( 'reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed' ):
+            if self.dataset in ( 'reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed', 'cora1', 'cora2' ):
                 self.features_train = self.sgc_precompute(self.adj_train, self.features_train, mode=self.mode)
                 self.features = self.sgc_precompute(self.adj_full, self.features, mode=self.mode)
                 self.adj = self.adj_train = None
@@ -612,7 +612,7 @@ class Worker():
             self.adj = self.build_cluster_adj(fnormalize=self.args.fnormalize)
 
         elif self.mode in ( 'vanilla', 'vanilla-clean', 'cs' ):
-            if self.dataset in ( 'reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed' ) \
+            if self.dataset in ( 'reddit', 'flickr', 'ppi', 'ppi-large', 'cora', 'citeseer', 'pubmed', 'cora1', 'cora2' ) \
                 or self.dataset.startswith('twitch-train'):
                 if self.mode == 'vanilla':
                     self.adj_full = self.perturb_adj(self.adj_full, self.args.perturb_type)
