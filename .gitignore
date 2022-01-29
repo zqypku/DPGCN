@@ -1,0 +1,11 @@
+# folder
+data/
+log/
+datasets/
+GraphGallery/
+__pycache__/
+
+# file
+.DS_Store
+*.py[cod]
+*$py.class
