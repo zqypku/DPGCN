@@ -31,6 +31,7 @@ def arg_parse():
     argparser.add_argument('--noise_seed', type=int, default=42)
     argparser.add_argument('--noise_type', type=str, default='laplace')
     argparser.add_argument('--perturb_type', type=str, default='continuous')
+    argparser.add_argument('--load_data', action='store_true')
     args = argparser.parse_args()
 
     if args.gpu >= 0:
@@ -55,11 +56,33 @@ if __name__ == '__main__':
     in_feats = g.ndata['features'].shape[1]
     args.in_feats = in_feats
     args.n_classes = n_classes
-    target_g, shadow_g = split_target_shadow(g)
-    
+
+    if args.load_data:
+        if args.dataset=='citeseer':
+            target_train_g, target_test_g = th.load('./data/citeseer_target.pt')
+            shadow_train_g, shadow_test_g = th.load('./data/citeseer_shadow.pt')
+        else:
+
+            target_train_g, target_test_g = th.load('./data/target.pt')
+            shadow_train_g, shadow_test_g = th.load('./data/shadow.pt')
+    elif args.dataset=='citeseer':
+        target_g, shadow_g = split_target_shadow(g)
+
+        target_train_g, target_test_g = split_train_test(target_g)
+        th.save((target_train_g, target_test_g), './data/citeseer_target.pt')
+        shadow_train_g, shadow_test_g = split_train_test(shadow_g)
+        th.save((shadow_train_g, shadow_test_g), './data/citeseer_shadow.pt')
+    else:
+        target_g, shadow_g = split_target_shadow(g)
+
+        target_train_g, target_test_g = split_train_test(target_g)
+        th.save((target_train_g, target_test_g), './data/target.pt')
+        shadow_train_g, shadow_test_g = split_train_test(shadow_g)
+        th.save((shadow_train_g, shadow_test_g), './data/shadow.pt')
+
     if args.dp:
         if args.mode == 'target':
-            target_train_g, target_test_g = split_train_test(target_g)
+            # target_train_g, target_test_g = split_train_test(target_g)
             target_train_g = get_dp_graph(args, target_train_g)
             target_test_g = get_dp_graph(args, target_test_g)
 
@@ -69,7 +92,7 @@ if __name__ == '__main__':
             run_data = target_train_g, target_test_g
     
         elif args.mode == 'shadow':
-            shadow_train_g, shadow_test_g = split_train_test(shadow_g)
+            # shadow_train_g, shadow_test_g = split_train_test(shadow_g)
             shadow_train_g = get_dp_graph(args, shadow_train_g)
             shadow_test_g = get_dp_graph(args, shadow_test_g)
 
@@ -86,7 +109,7 @@ if __name__ == '__main__':
 
     else: 
         if args.mode == 'target':
-            target_train_g, target_test_g = split_train_test(target_g)
+            # target_train_g, target_test_g = split_train_test(target_g)
 
             target_train_g.create_formats_()
             target_test_g.create_formats_()
@@ -94,7 +117,7 @@ if __name__ == '__main__':
             run_data = target_train_g, target_test_g
         
         elif args.mode == 'shadow':
-            shadow_train_g, shadow_test_g = split_train_test(shadow_g)
+            # shadow_train_g, shadow_test_g = split_train_test(shadow_g)
 
             shadow_train_g.create_formats_()
             shadow_test_g.create_formats_()

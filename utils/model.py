@@ -95,3 +95,18 @@ class GCN(nn.Module):
             # return the embedding after the first layer;
             break
         return y
+
+
+class MLP(nn.Module):
+    def __init__(self, n_in, n_hidden=32, n_out=2):
+        super(MLP, self).__init__()
+
+        self.mlp = nn.Sequential(nn.Linear(n_in, n_hidden),
+                                nn.ReLU())
+
+        self.out = nn.Sequential(nn.Linear(n_hidden, n_out), nn.Softmax(dim=1))
+        
+    def forward(self, x):
+        x = self.mlp(x)
+        output = self.out(x)
+        return output
